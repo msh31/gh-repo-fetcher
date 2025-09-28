@@ -25,9 +25,23 @@ result = subprocess.run(
 )
 
 found_repos = json.loads(result.stdout)
+cursor.execute("DELETE FROM projects") # clear all entries
 
 for repo in found_repos:
-    print(repo)
+    lang_names = [lang['node']['name'] for lang in repo['languages']]
+    languages_str = ', '.join(lang_names)
+    repo_url = repo["url"].split('/')[-1]
+
+    cursor.execute("""INSERT INTO projects (name, description, repo, languages, stars, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?)""", 
+               (repo["name"], 
+                repo.get("description"), 
+                repo_url,
+                languages_str,
+                repo["stargazerCount"],
+                repo["updatedAt"]))
 
 connection.commit()
 connection.close()
+
+print("\ndone!")
