@@ -19,7 +19,7 @@ connection = sqlite3.connect("projects.db")
 cursor = connection.cursor()
 
 result = subprocess.run(
-    ["gh", "repo", "list", "msh31", "--visibility", "public", "--json", "name,description,languages,updatedAt,url,stargazerCount"],
+    ["gh", "repo", "list", "msh31", "--visibility", "public", "--limit", "200", "--json", "name,description,languages,updatedAt,url,stargazerCount"],
     capture_output=True,
     text=True
 )
