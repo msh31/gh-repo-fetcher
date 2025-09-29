@@ -7,5 +7,7 @@ This is a simple script to fetch public repositories from a GitHub username and 
 ```py
 sqlite3 projects.db < schema.sql
 
-python3 fetch.py
+pip install -r requirements.txt
+
+bython fetch.by
 ```
