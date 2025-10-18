@@ -2,18 +2,22 @@ import json, sqlite3, subprocess
 import os
 print(f"Current working directory: {os.getcwd()}")
 
-def check_if_installed(cmd):
-    try:
+def check_if_installed(cmd) {
+    try {
         subprocess.run([cmd, "--version"])
         return True
-    except (FileNotFoundError, subprocess.CalledProcessError):
+    } except (FileNotFoundError, subprocess.CalledProcessError) {
         return False
+    }
+}
 
-if not check_if_installed("gh"):
+if not check_if_installed("gh") {
     print("GitHub CLI is not installed or not found in your PATH")
+}
 
-if not check_if_installed("sqlite3"):
+if not check_if_installed("sqlite3") {
     print("SQLite3 is not installed or not found in your PATH")
+}
 
 print("\ngoodjob! all requirements are fulfilled. Let's continue")
 
@@ -27,21 +31,22 @@ result = subprocess.run(
 )
 
 found_repos = json.loads(result.stdout)
-cursor.execute("DELETE FROM projects") # clear all entries
+cursor.execute("DELETE FROM projects")  # clear all entries
 
-for repo in found_repos:
+for repo in found_repos {
     lang_names = [lang['node']['name'] for lang in repo['languages']]
     languages_str = ', '.join(lang_names)
     repo_url = repo["url"].split('/')[-1]
 
     cursor.execute("""INSERT INTO projects (name, description, repo, languages, stars, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?)""", 
-               (repo["name"], 
-                repo.get("description"), 
-                repo_url,
-                languages_str,
-                repo["stargazerCount"],
-                repo["updatedAt"]))
+                      VALUES (?, ?, ?, ?, ?, ?)""",
+                   (repo["name"],
+                    repo.get("description"),
+                    repo_url,
+                    languages_str,
+                    repo["stargazerCount"],
+                    repo["updatedAt"]))
+}
 
 connection.commit()
 connection.close()
