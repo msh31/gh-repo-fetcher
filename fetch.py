@@ -1,4 +1,6 @@
 import json, sqlite3, subprocess
+import os
+print(f"Current working directory: {os.getcwd()}")
 
 def check_if_installed(cmd):
     try:
@@ -15,7 +17,7 @@ if not check_if_installed("sqlite3"):
 
 print("\ngoodjob! all requirements are fulfilled. Let's continue")
 
-connection = sqlite3.connect("projects.db")
+connection = sqlite3.connect("../portfolio/projects.db")
 cursor = connection.cursor()
 
 result = subprocess.run(
