@@ -1,5 +1,4 @@
-import json, sqlite3, subprocess
-
+import json, sqlite3, subprocess, requests
 
 def check_if_installed(cmd):
     try:
@@ -8,57 +7,51 @@ def check_if_installed(cmd):
     except (FileNotFoundError, subprocess.CalledProcessError):
         return False
 
-
-if not check_if_installed("gh"):
-    print("GitHub CLI is not installed or not found in your PATH")
-
 if not check_if_installed("sqlite3"):
     print("SQLite3 is not installed or not found in your PATH")
+    exit(1)
 
-print("\ngoodjob! all requirements are fulfilled. Let's continue")
+print("\nFetching repos from Forgejo...")
 
 connection = sqlite3.connect("projects.db")
 cursor = connection.cursor()
 
-result = subprocess.run(
-    [
-        "gh",
-        "repo",
-        "list",
-        "msh31",
-        "--visibility",
-        "public",
-        "--limit",
-        "200",
-        "--json",
-        "name,description,languages,updatedAt,url,stargazerCount",
-    ],
-    capture_output=True,
-    text=True,
+response = requests.get(
+    "https://git.marco007.dev/api/v1/users/marco/repos",
+    params={"limit": 200}
 )
 
-found_repos = json.loads(result.stdout)
+if response.status_code != 200:
+    print(f"Error fetching repos: {response.status_code}")
+    exit(1)
+
+found_repos = response.json()
 cursor.execute("DELETE FROM projects")  # clear all entries
 
 for repo in found_repos:
-    lang_names = [lang["node"]["name"] for lang in repo["languages"]]
-    languages_str = ", ".join(lang_names)
-    repo_url = repo["url"].split("/")[-1]
-
+    if repo.get("private"):
+        continue
+    
+    lang_response = requests.get(
+        f"https://git.marco007.dev/api/v1/repos/marco/{repo['name']}/languages"
+    )
+    languages = lang_response.json() if lang_response.status_code == 200 else {}
+    languages_str = ", ".join(languages.keys())
+    
     cursor.execute(
         """INSERT INTO projects (name, description, repo, languages, stars, updated_at)
                VALUES (?, ?, ?, ?, ?, ?)""",
         (
             repo["name"],
             repo.get("description"),
-            repo_url,
+            repo["name"], 
             languages_str,
-            repo["stargazerCount"],
-            repo["updatedAt"],
+            repo.get("stars_count", 0),
+            repo["updated_at"],
         ),
     )
 
 connection.commit()
 connection.close()
 
-print("\ndone!")
+print(f"\nDone! Imported {len(found_repos)} repos")
