@@ -32,19 +32,19 @@ SELECT * FROM projects WHERE featured = true ORDER BY updated_at DESC;
 
 CREATE VIEW project_summary AS
 SELECT 
-    'School Projects' as category,
-    COUNT(*) as count,
-    GROUP_CONCAT(DISTINCT languages) as all_languages
+    'School Projects' AS category,
+    COUNT(*) AS count,
+    GROUP_CONCAT(DISTINCT languages) AS all_languages
 FROM projects WHERE school = true
 UNION ALL
 SELECT 
-    'Personal Projects' as category,
-    COUNT(*) as count,
-    GROUP_CONCAT(DISTINCT languages) as all_languages
-FROM projects WHERE school = false;
-SELECT 
-    'Featured Projects' as category,
-    COUNT(*) as count,
-    GROUP_CONCAT(DISTINCT languages) as all_languages
-FROM projects WHERE featured = true
+    'Personal Projects' AS category,
+    COUNT(*) AS count,
+    GROUP_CONCAT(DISTINCT languages) AS all_languages
+FROM projects WHERE school = false
 UNION ALL
+SELECT 
+    'Featured Projects' AS category,
+    COUNT(*) AS count,
+    GROUP_CONCAT(DISTINCT languages) AS all_languages
+FROM projects WHERE featured = true;
