@@ -16,19 +16,31 @@ print("\nFetching repos from Forgejo...")
 connection = sqlite3.connect("projects.db")
 cursor = connection.cursor()
 
-response = requests.get(
-    "https://git.marco007.dev/api/v1/users/marco/repos",
-    params={"limit": 200}
-)
+all_repos = []
+page = 1
+while True:
+    response = requests.get(
+        "https://git.marco007.dev/api/v1/users/marco/repos",
+        params={"limit": 50, "page": page}
+    )
+    
+    if response.status_code != 200:
+        print(f"Error fetching repos: {response.status_code}")
+        exit(1)
+    
+    repos = response.json()
+    if not repos:  # No more repos
+        break
+    
+    all_repos.extend(repos)
+    page += 1
+    print(f"Fetched page {page-1}: {len(repos)} repos")
 
-if response.status_code != 200:
-    print(f"Error fetching repos: {response.status_code}")
-    exit(1)
+print(f"Total repos fetched: {len(all_repos)}")
 
-found_repos = response.json()
 cursor.execute("DELETE FROM projects")  # clear all entries
 
-for repo in found_repos:
+for repo in all_repos:
     if repo.get("private"):
         continue
     
@@ -54,4 +66,5 @@ for repo in found_repos:
 connection.commit()
 connection.close()
 
-print(f"\nDone! Imported {len(found_repos)} repos")
+print(f"\nDone! Imported {len([r for r in all_repos if not r.get('private')])} public repos")
+
